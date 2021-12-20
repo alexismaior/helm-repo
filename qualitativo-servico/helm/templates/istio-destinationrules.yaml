@@ -1,0 +1,14 @@
+{{- $fullName := include "template.serviceName" . -}}
+{{- $namespace := .Release.Namespace }}
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ include "template.serviceName" . }}
+  labels:
+    kiali_wizard: request_routing
+spec:
+  host: {{ include "template.serviceName" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  subsets:
+    - labels:
+        {{- include "template.podLabels" . | nindent 8 }}
+      name: v{{ include "template.build" . }}

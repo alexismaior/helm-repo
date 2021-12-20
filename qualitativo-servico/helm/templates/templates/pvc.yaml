@@ -1,0 +1,20 @@
+{{$pvc:= default dict .Values.volumes}}
+{{- range $pvc }}
+{{- if .type }}
+{{- if eq .type "pvc" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .pvcName }}
+spec:
+  accessModes:
+  - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  volumeName: {{ .pvName }}
+{{- end }}
+{{- end }}
+{{- end }}

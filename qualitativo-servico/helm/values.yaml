@@ -1,0 +1,50 @@
+# Default values.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+description: Serviço do qualitativo
+replicaCount: 1
+image:
+  repository: harbor.app.sof.intra/siop
+  name: qualitativo-servico
+  tag: 'latest'
+  pullPolicy: IfNotPresent
+  labels:
+  ##    desenv: codin 
+  ##    author: codin
+  annotations:
+  ##    annotation: "example" 
+  ##         
+  command:
+  ##    - /bin/sleep
+  args:
+  ##    - 300
+  workingDir: ## /data
+## Portas expostas pelo servico  
+service:
+  name: qualitativo-servico
+  type: ClusterIP
+  ports:
+    - 8084
+    - 8082
+## Caso o servico seja exposta para internet/intranet, habilitar o ingress    
+## Alterar o host para o respectivo ambiente de testes
+## NÃO USAR A URL DE PRODUÇÃO - O pipeline é responsável por sobrescrever esta variável
+ingress:
+  enabled: true
+  annotations: {}
+  host: siop-teste.app.sof.intra
+  paths:
+    - path: "/modulo/qualitativo/api"
+      servicePort: 8084
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+imagePullSecrets:
+  - name: registry-app-sof
+serviceAccount:
+  create: true
+  name:
+rbac:
+  create: false
+podSecurityContext: {}

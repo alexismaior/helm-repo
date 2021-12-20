@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "template.serviceName" . }}
+  labels:
+    {{- include "template.labels" . | nindent 4 }}
+    {{- with .Values.image.labels }}
+      {{- toYaml . | nindent 4  }}
+    {{- end}}
+spec:
+  type: {{ default "ClusterIP" .Values.service.type }}
+  ports:
+    {{- range .Values.service.ports }}
+    - name: http-{{ . }}
+      port: {{ . }}
+      targetPort: {{ . }}
+      protocol: TCP
+      {{- if eq (toString (.)) "8082" }}
+      appProtocol: grpc-web
+      {{- else }}
+      appProtocol: http
+      {{- end }}
+    {{- end}}
+  selector:
+    {{- include "template.selectorLabels" . | nindent 4 }}

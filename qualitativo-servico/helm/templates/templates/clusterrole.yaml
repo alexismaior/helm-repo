@@ -1,0 +1,14 @@
+{{$rbac := default dict .Values.rbac}}
+{{ if and $rbac.create  $rbac.clusterRole }}
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "template.serviceAccountName" . }}-{{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+    {{- toYaml .Values.rbac.clusterRole.resources | nindent 6 }} 
+    verbs:
+    {{- toYaml .Values.rbac.clusterRole.verbs | nindent 6 }} 
+{{ end }}

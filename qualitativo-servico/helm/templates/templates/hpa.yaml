@@ -1,0 +1,25 @@
+{{$hpa:= default dict .Values.hpa}}
+{{- if $hpa.enabled -}}
+{{- $fullName := include "template.serviceName" . -}}
+{{- $namespace := .Release.Namespace }}
+{{- if eq  $namespace "production" }}
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "template.serviceName" . }}
+spec:
+  maxReplicas: {{ $hpa.max }}
+  minReplicas: {{ $hpa.min }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "template.serviceName" . }}
+  metrics:
+  - type: Resource
+    resource:
+      name: {{ $hpa.type }}
+      target:
+        type: Utilization
+        averageUtilization: {{ $hpa.value }}
+  {{- end }}
+{{- end }}

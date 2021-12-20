@@ -1,0 +1,143 @@
+{{- $namespace := .Release.Namespace -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "template.fullname" . }}
+  labels:
+    {{- include "template.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.replicaCount }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      {{- include "template.selectorLabels" . | nindent 6 }}
+      {{- with .Values.image.labels }}
+        {{- toYaml . | nindent 6  }}
+      {{- end}}
+  template:
+    metadata:
+      labels:
+        {{- $labels := default dict .Values.image.labels}}
+        {{- if not $labels.logging}}
+        logging: {{true | quote}}
+        logRetencao: {{"7dias"}}
+        {{- end}}
+        {{- include "template.podLabels" . | nindent 8 }}
+        {{- with .Values.image.labels }}
+          {{- toYaml . | nindent 8  }}
+        {{- end}}
+      annotations:
+        {{- with .Values.image.annotations }}
+          {{- toYaml . | nindent 8  }}
+        {{- end}}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- else }}
+      imagePullSecrets:
+        - name: registry-app-sof
+    {{- end }}
+      serviceAccountName: {{ include "template.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml (default dict .Values.podSecurityContext) | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ default "harbor.app.sof.intra/siop" .Values.image.repository }}/{{ .Values.image.name }}:{{ default "latest" .Values.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
+          env:
+           {{- range .Values.image.env }}
+             - name: {{ .name }}
+               value: {{ .value | quote }}
+           {{- end }}
+          envFrom:
+           {{- include "template.envFrom" . | nindent 12 }}
+           {{- range .Values.image.envFrom }}
+              {{- if eq .type "configmap" }}
+            - configMapRef:
+                name: {{ .name }}
+              {{- end }}
+              {{- if eq .type "secret" }}
+            - secretRef:
+                name: {{ .name }}
+              {{- end }}
+           {{- end }}
+          command:
+            {{- range .Values.image.command }}
+            - {{ . }}
+            {{- end}}
+          args:
+            {{- range .Values.image.args }}
+            - {{ . | quote }}
+            {{- end}}
+          workingDir: {{ .Values.image.workingDir }}
+          ports:
+            {{- range .Values.service.ports }}
+            - name: http-{{ . }}
+              containerPort: {{ . }}
+              protocol: TCP
+            {{- end}}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          volumeMounts:
+          {{- range .Values.volumes }}
+          - mountPath: {{ .mountPath | quote }}
+            name: {{ .name }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+    {{- range .Values.volumes }}
+    {{- if .type }}
+    {{- if eq .type "secret" }}
+      - name: {{ .name }}
+        secret:
+          secretName: {{ .secretName }}
+    {{- end }}
+    {{- if eq .type "configmap" }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .configMapName }}
+    {{- end }}
+    {{- if eq .type "hostPath" }}
+      - name: {{ .name }}
+        hostPath:
+          path: {{ .hostPath }}
+    {{- end }}
+    {{- if eq .type "downwardAPI" }}
+      - name: {{ .name }}
+        downwardAPI:
+          items:
+            {{- toYaml .items | nindent 10}}
+    {{- end }}
+    {{- if eq .type "pvc" }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .pvcName }}
+    {{- end }}
+    {{- if eq .type "nfs-arquivoanexo" }}
+      - name: {{ .name }}
+        nfs:
+          server: {{ .server }}
+        {{- if eq $namespace "production" }}
+          path: /siop/Producao/arquivoanexo
+        {{- else }}
+          path: {{ .path }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}

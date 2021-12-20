@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package qualitativo;
+
+option go_package = "git.sof.intra/siop/qualitativo-servico/internal/gerados";
+
+import "siop-proto.proto";
+
+service Service {
+    rpc Classificacoes (ClassificacoesRequest) returns (ClassificacoesReply) {}
+    rpc Localizadores (LocalizadoresRequest) returns (LocalizadoresReply) {}
+    rpc Decodificar (DecodificarRequest) returns (DecodificarReply) {}
+}
+
+message ClassificacoesRequest {
+    int32 exercicio = 1;
+    repeated string classificacoes_codificadas = 2;
+}
+
+message ClassificacoesReply {
+    repeated Classificacao classificacoes = 1;
+}
+
+message LocalizadoresRequest {
+    FiltroLocalizador filtro = 1;
+    FetchLocalizador fetch = 2;
+    int32 n = 3;
+}
+
+message LocalizadoresReply {
+    repeated Localizador localizadores = 1;
+}
+
+message DecodificarRequest {
+    repeated string classificacoes_codificadas = 1;
+}
+
+message DecodificarReply {
+    repeated Classificacao classificacoes = 1;
+}
+
+message Classificacao {
+    siop_proto.Classificador esfera = 1 [json_name = "Esfera"];
+    siop_proto.Classificador orgao = 2 [json_name = "Orgao"];
+    siop_proto.Classificador funcao = 3 [json_name = "Funcao"];
+    siop_proto.Classificador sub_funcao = 4 [json_name = "SubFuncao"];
+    siop_proto.Classificador programa = 5 [json_name = "Programa"];
+    siop_proto.Classificador acao = 6 [json_name = "Acao"];
+    siop_proto.Classificador localizador = 7 [json_name = "Localizador"];
+    string classificacao_codificada = 8 [json_name = "ClassificacaoCodificada"];
+}
+message FiltroClassificacao {
+    int32 exercicio = 1 [json_name = "Exercicio"];
+    repeated string classificacoes_codificadas = 2 [json_name = "ClassificacoesCodificadas"];
+    repeated Classificacao classificacoes = 3 [json_name = "Classificacoes"];
+    repeated Classificacao classificacoes_parciais = 4 [json_name = "ClassificacoesParciais"];
+}
+message Localizador {
+    int32 id = 1 [json_name = "ID"];
+    int32 esfera_id = 2 [json_name = "EsferaID"];
+    int32 orgao_id = 3 [json_name = "OrgaoID"];
+    int32 funcao_id = 4 [json_name = "FuncaoID"];
+    int32 subfuncao_id = 5 [json_name = "SubfuncaoID"];
+    int32 programa_id = 6 [json_name = "ProgramaID"];
+    int32 acao_id = 7 [json_name = "AcaoID"];
+    string classificacao_codificada = 8 [json_name = "ClassificacaoCodificada"];
+    int32 exercicio = 9 [json_name = "Exercicio"];
+    int32 momento_id = 10 [json_name = "MomentoId"];
+    Classificacao classificacao = 11 [json_name = "Classificacao"];
+    int32 tipo_inclusao = 12 [json_name = "TipoInclusao"];
+    int32 municipio_id = 13 [json_name = "MunicipioId"];
+    int32 uf_id = 14 [json_name = "UfId"];
+    int32 regiao_id = 15 [json_name = "RegiaoId"];
+    string codigo = 16 [json_name = "Codigo"];
+    bool nacional = 17 [json_name = "Nacional"];
+    string descricao = 18 [json_name = "Descricao"];
+}
+message FiltroLocalizador {
+    repeated int32 ids = 1 [json_name = "Ids"];
+    repeated string classificacoes_codificadas = 2 [json_name = "ClassificacoesCodificadas"];
+    int32 exercicio = 3 [json_name = "Exercicio"];
+    repeated int32 orgaos_ids = 4 [json_name = "OrgaosIds"];
+    repeated int32 orgaos_ids_ou_ids_pais = 5 [json_name = "OrgaosIdsOuIdsPais"];
+    repeated Classificacao classificacoes = 6 [json_name = "Classificacoes"];
+    repeated Classificacao classificacoes_parciais = 7 [json_name = "ClassificacoesParciais"];
+}
+message FetchLocalizador {
+    bool classificacao_codificada = 1 [json_name = "ClassificacaoCodificada"];
+    bool classificacao = 2 [json_name = "Classificacao"];
+}

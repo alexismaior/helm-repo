@@ -1,0 +1,15 @@
+{{$rbac := default dict .Values.rbac}}
+{{ if and $rbac.create $rbac.role }}
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "template.serviceAccountName" . }}-{{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+    {{- toYaml .Values.rbac.role.resources | nindent 6 }} 
+    verbs:
+    {{- toYaml .Values.rbac.role.verbs | nindent 6 }} 
+{{ end }}
